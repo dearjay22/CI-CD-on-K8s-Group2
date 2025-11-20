@@ -1,0 +1,6 @@
+- name: uninstall k3s
+  ansible.builtin.shell: /usr/local/bin/k3s-uninstall.sh
+- name: Remove kubeconfig
+  ansible.builtin.file:
+    path: ~/.kube/config
+    state: absent

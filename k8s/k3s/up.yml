@@ -1,0 +1,12 @@
+- name: create k3s
+  ansible.builtin.shell: curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server" sh -s - --disable=traefik --write-kubeconfig-mode 644
+  args:
+    creates: /etc/rancher/k3s/k3s.yaml
+- name: Create .kube directory if it does not exist
+  ansible.builtin.file:
+    path: ~/.kube/
+    state: directory
+- name: copy kubeconfig
+  ansible.builtin.shell: cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+  args:
+    creates: ~/.kube/config
