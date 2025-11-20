@@ -1,0 +1,28 @@
+{
+    // ...
+    "overrideCommand": true,
+    "runArgs": [
+        "--cap-add=SYS_PTRACE",
+        "--security-opt",
+        "seccomp=unconfined"
+    ],
+    "containerEnv": {
+		"K8S": "k3d"
+	},
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "streetsidesoftware.code-spell-checker",
+                "ms-python.autopep8",
+                "dbaeumer.vscode-eslint",
+                "ritwickdey.LiveServer",
+                "ms-python.vscode-pylance",
+                "ms-python.python",
+                "ms-python.debugpy",
+                "qwtel.sqlite-viewer"
+            ]
+        }
+    }
+    // ...
+  }
