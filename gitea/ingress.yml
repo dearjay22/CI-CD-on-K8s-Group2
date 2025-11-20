@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitea-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "512m"
+
+spec:
+  ingressClassName: nginx # This should match the name of your IngressClass
+  rules:
+  # - host: gitea.k3p.dev
+  - http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: gitea-http
+              port:
+                number: 3000
