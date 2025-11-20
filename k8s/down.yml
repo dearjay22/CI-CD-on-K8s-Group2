@@ -1,0 +1,9 @@
+---
+- name: remove kubernetes
+  hosts: localhost
+  tasks:
+  - name: get k8s variant
+    set_fact:
+      k8s: "{{ lookup('ansible.builtin.env', 'K8S') | default('k3s', True) }}"
+  - name: run k8s variant
+    ansible.builtin.include_tasks: "{{ k8s }}/down.yml"
