@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Remove gitea release and waiting suppression ending
+    kubernetes.core.helm:
+      name: gitea
+      release_namespace: default
+      state: absent
+      wait: true
