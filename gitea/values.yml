@@ -10,7 +10,7 @@ postgresql-ha:
 persistence:
   enabled: false
 
-gitea:
+gitea: # gitea values
   config:
     database:
       DB_TYPE: sqlite3
