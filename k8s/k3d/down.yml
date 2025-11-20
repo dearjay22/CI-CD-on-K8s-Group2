@@ -1,0 +1,6 @@
+- name: stop cluster
+  ansible.builtin.shell: k3d cluster delete local-k8s
+- name: delete .kube folder
+  ansible.builtin.file:
+    path: ~/.kube
+    state: absent

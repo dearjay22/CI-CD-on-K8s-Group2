@@ -1,0 +1,20 @@
+- name: download k3d
+  ansible.builtin.command: curl https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh -o /tmp/installk3d.sh
+  args:
+    creates: /tmp/installk3d.sh
+- name: install k3d
+  ansible.builtin.command: bash /tmp/installk3d.sh
+  args:
+    creates: /usr/local/bin/k3d
+- name: download kubectl
+  ansible.builtin.command: curl -Lo /tmp/installkubectl https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl
+  args:
+    creates: /tmp/installkubectl
+- name: install kubectl
+  ansible.builtin.command: sudo install -o root -g root -m 0755 /tmp/installkubectl /usr/local/bin/kubectl
+  args:
+    creates: /usr/local/bin/kubectl
+- name: create cluster
+  ansible.builtin.command: k3d cluster create local-k8s -p "80:80@loadbalancer" --k3s-arg "--disable=traefik@server:*"
+  args:
+    creates: ~/.kube/config
