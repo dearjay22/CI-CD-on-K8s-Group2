@@ -1,0 +1,38 @@
+# Disable in-chart databases/caches – we use external MySQL
+postgresql: { enabled: false }
+postgresql-ha: { enabled: false }
+memcached: { enabled: false }
+redis: { enabled: false }
+redis-cluster: { enabled: false }
+valkey: { enabled: false }
+valkey-cluster: { enabled: false }
+
+persistence:
+  enabled: true
+  data:
+    enabled: true
+    size: 10Gi
+    storageClass: local-path
+  config:
+    enabled: true
+    size: 1Gi
+    storageClass: local-path
+
+service:
+  http:
+    type: ClusterIP   # normal ClusterIP service for 3000
+
+gitea:
+  config:
+    database:
+      DB_TYPE: mysql
+      HOST: mysql.gitea.svc.cluster.local:3306
+      NAME: gitea
+      USER: gitea
+      PASSWD: "__MYSQL_GITEA_PASSWORD__"   # we inject real value at install
+    server:
+      ROOT_URL: "" # after getting new dns from professor we will update this value
+      DOMAIN: "" # after getting new dns from professor we will update this value
+      PROTOCOL: http
+      HTTP_PORT: 3000
+      DISABLE_SSH: true
