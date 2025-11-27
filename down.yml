@@ -1,3 +1,26 @@
 ---
-- import_playbook: gitea/down.yml
-- import_playbook: k8s/down.yml
+- name: Remove Gitea Actions runner from Kubernetes
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    namespace: gitea
+
+  tasks:
+    - name: Delete runner Deployment
+      kubernetes.core.k8s:
+        api_version: apps/v1
+        kind: Deployment
+        name: gitea-act-runner
+        namespace: "{{ namespace }}"
+        state: absent
+        wait: true
+
+    - name: Delete runner token secret
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Secret
+        name: gitea-runner-secret
+        namespace: "{{ namespace }}"
+        state: absent
