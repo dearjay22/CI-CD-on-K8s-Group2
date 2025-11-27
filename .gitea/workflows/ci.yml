@@ -2,7 +2,7 @@ name: Mirror to GitHub
 on: [push]
 
 jobs:
-  mirror:
+  Change-Details:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
