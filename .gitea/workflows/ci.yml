@@ -9,8 +9,8 @@ jobs:
 
       - name: Push to GitHub (skip if same commit)
         env:
-          GH_USER: ${{ secrets.GITHUB_USERNAME }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_USER: ${{ secrets.GHUB_USERNAME }}
+          GH_TOKEN: ${{ secrets.GHUB_TOKEN }}
           GH_HOST: github.com
           GH_REPO: CI-CD-on-K8s-Group2
           BRANCH: ${{ github.ref_name }}
