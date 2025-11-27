@@ -3,6 +3,7 @@ on: [push]
 
 jobs:
   mirror:
+    if: ${{ github.actor != 'gitea-mirror-bot' && github.actor != 'mirror-bot' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
