@@ -1,0 +1,18 @@
+name: CI
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          node -v || true
+          git --version
+          docker version
+      - uses: docker/setup-buildx-action@v3
+      - run: |
+          if [ -d ./app ]; then
+            docker build -t app:test ./app
+          else
+            ls -la
+          fi
