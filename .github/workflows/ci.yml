@@ -1,0 +1,20 @@
+name: Mirror to Gitea
+on: [push]
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Push to Gitea
+        env:
+          GITEA_USERNAME: ${{ secrets.GITEA_USERNAME }}
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+          GITEA_HOST: group2.the-vpk.com
+          REPO: CI-CD-on-K8s-Group2
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git config user.name "GitHub Mirror Bot"
+          git config user.email "actions@github.com"
+          git remote add gitea https://${GITEA_USERNAME}:${GITEA_TOKEN}@${GITEA_HOST}/${GITEA_USERNAME}/${REPO}.git
+          git push gitea HEAD:${BRANCH}

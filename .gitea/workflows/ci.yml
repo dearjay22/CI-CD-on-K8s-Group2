@@ -1,18 +1,36 @@
-name: CI
+name: Mirror to GitHub
 on: [push]
+
 jobs:
-  build:
+  mirror:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          node -v || true
-          git --version
-          docker version
-      - uses: docker/setup-buildx-action@v3
-      - run: |
-          if [ -d ./app ]; then
-            docker build -t app:test ./app
-          else
-            ls -la
+
+      - name: Push to GitHub (skip if same commit)
+        env:
+          GH_USER: ${{ secrets.GITHUB_USERNAME }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_HOST: github.com
+          GH_REPO: CI-CD-on-K8s-Group2
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -e
+          git config user.name  "Gitea Mirror Bot"
+          git config user.email "mirror@${GH_HOST}"
+
+          GH_URL="https://${GH_USER}:${GH_TOKEN}@${GH_HOST}/${GH_USER}/${GH_REPO}.git"
+
+          # Find the HEAD commit on GitHub for this branch (may be empty on first push)
+          REMOTE_SHA=$(git ls-remote "$GH_URL" "refs/heads/${BRANCH}" | awk '{print $1}')
+          LOCAL_SHA=$(git rev-parse HEAD)
+
+          if [ "$REMOTE_SHA" = "$LOCAL_SHA" ]; then
+            echo "GitHub already has this commit on ${BRANCH}; skipping push."
+            exit 0
           fi
+
+          # Add/refresh remote and push
+          git remote remove github 2>/dev/null || true
+          git remote add github "$GH_URL"
+          git push github HEAD:${BRANCH}
