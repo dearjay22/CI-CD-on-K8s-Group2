@@ -31,8 +31,8 @@ gitea:
       USER: gitea
       PASSWD: "__MYSQL_GITEA_PASSWORD__"   # we inject real value at install
     server:
-      ROOT_URL: "" # after getting new dns from professor we will update this value
-      DOMAIN: "" # after getting new dns from professor we will update this value
+      ROOT_URL: "htttps://group2.the-vpk.com/" 
+      DOMAIN: "group2.the-vpk.com"
       PROTOCOL: http
       HTTP_PORT: 3000
       DISABLE_SSH: true
