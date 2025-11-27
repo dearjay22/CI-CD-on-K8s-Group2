@@ -1,4 +1,4 @@
-name: Mirror to GitHub
+name: Commit Info
 on: [push]
 
 jobs:
@@ -6,20 +6,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history so we can diff reliably
 
-      - name: Print commit metadata and changed files
+      - name: Print commit metadata and changed files (robust)
         env:
-          ACTOR:       ${{ github.actor }}
-          REPO:        ${{ github.repository }}
-          BRANCH:      ${{ github.ref_name }}
-          SHA:         ${{ github.sha }}
-          MSG:         ${{ github.event.head_commit.message }}
-          AUTHOR_NAME: ${{ github.event.head_commit.author.name }}
+          ACTOR:        ${{ github.actor }}
+          REPO:         ${{ github.repository }}
+          BRANCH:       ${{ github.ref_name }}
+          SHA:          ${{ github.sha }}
+          MSG:          ${{ github.event.head_commit.message }}
+          AUTHOR_NAME:  ${{ github.event.head_commit.author.name }}
           AUTHOR_EMAIL: ${{ github.event.head_commit.author.email }}
-          TIMESTAMP:   ${{ github.event.head_commit.timestamp }}
-          BEFORE:      ${{ github.event.before }}
+          TIMESTAMP:    ${{ github.event.head_commit.timestamp }}
+          BEFORE:       ${{ github.event.before }}
         run: |
-          set -e
+          set -euo pipefail
+
           echo "Repository : $REPO"
           echo "Branch     : $BRANCH"
           echo "Pushed by  : $ACTOR"
@@ -30,11 +33,25 @@ jobs:
           echo "$MSG"
           echo "----------------------------------------"
 
-          # List changed files
-          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
-            echo "No 'before' SHA (new branch or first push). Files in this commit:"
-            git show --name-status --oneline "$SHA"
-          else
+          # Helper: does BEFORE exist as a commit object?
+          has_before() {
+            [ -n "${BEFORE:-}" ] \
+              && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] \
+              && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null
+          }
+
+          if has_before; then
             echo "Changed files since BEFORE=$BEFORE:"
-            git diff --name-status "$BEFORE" "$SHA"
+            # Try a normal diff; if it fails for any reason, fall back to showing this commit only
+            git diff --name-status "$BEFORE" "$SHA" || git show --name-status --oneline "$SHA"
+          else
+            # BEFORE missing (new branch, mirror, or force-push). Use the parent of this commit if it exists.
+            PARENT="$(git rev-list --max-parents=1 --parents -n 1 "$SHA" | awk '{print $2}')"
+            if [ -n "$PARENT" ]; then
+              echo "BEFORE not available; using parent commit $PARENT"
+              git diff --name-status "$PARENT" "$SHA"
+            else
+              echo "Root commit; listing files in this commit:"
+              git show --name-status --oneline "$SHA"
+            fi
           fi
