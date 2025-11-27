@@ -1,3 +1,94 @@
 ---
-- import_playbook: k8s/up.yml
-- import_playbook: gitea/up.yml
+- name: Install Gitea Actions runner on Kubernetes
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    namespace: gitea
+    gitea_url: "https://group2.the-vpk.com"   # or your active hostname
+    runner_name: "k8s-runner"
+    runner_labels: "ubuntu-latest"
+    # expect token in env for safety
+    runner_token: "{{ lookup('env','GITEA_RUNNER_TOKEN') }}"
+
+  tasks:
+    - name: Ensure namespace exists
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ namespace }}"
+        state: present
+
+    - name: Create runner token secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: gitea-runner-secret
+            namespace: "{{ namespace }}"
+          type: Opaque
+          stringData:
+            RUNNER_TOKEN: "{{ runner_token }}"
+
+    - name: Apply Gitea act_runner Deployment (with DinD sidecar)
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: gitea-act-runner
+            namespace: "{{ namespace }}"
+            labels: { app: gitea-act-runner }
+          spec:
+            replicas: 1
+            selector:
+              matchLabels: { app: gitea-act-runner }
+            template:
+              metadata:
+                labels: { app: gitea-act-runner }
+              spec:
+                securityContext:
+                  fsGroup: 1000
+                containers:
+                  # Docker-in-Docker daemon for jobs
+                  - name: dind
+                    image: docker:24-dind
+                    args: ["--host=tcp://0.0.0.0:2375","--storage-driver=overlay2"]
+                    env:
+                      - name: DOCKER_TLS_CERTDIR
+                        value: ""    # disable TLS for local DinD
+                    securityContext:
+                      privileged: true
+                    ports:
+                      - containerPort: 2375
+                    volumeMounts:
+                      - name: dind-storage
+                        mountPath: /var/lib/docker
+                  # Gitea runner talking to DinD via DOCKER_HOST
+                  - name: runner
+                    image: gitea/act_runner:latest
+                    env:
+                      - name: DOCKER_HOST
+                        value: "tcp://localhost:2375"
+                      - name: GITEA_INSTANCE_URL
+                        value: "{{ gitea_url }}"
+                      - name: GITEA_RUNNER_NAME
+                        value: "{{ runner_name }}"
+                      - name: GITEA_RUNNER_LABELS
+                        value: "{{ runner_labels }}"
+                      - name: GITEA_RUNNER_REGISTRATION_TOKEN
+                        valueFrom:
+                          secretKeyRef:
+                            name: gitea-runner-secret
+                            key: RUNNER_TOKEN
+                    readinessProbe:
+                      exec: { command: ["sh","-c","act_runner --version"] }
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                volumes:
+                  - name: dind-storage
+                    emptyDir: {}
