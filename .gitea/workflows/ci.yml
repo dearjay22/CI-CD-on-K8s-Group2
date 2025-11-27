@@ -1,13 +1,11 @@
-name: Commit Info
+name: Mirror to GitHub
 on: [push]
 
 jobs:
-  show:
+  mirror:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # lets us diff against the previous commit
 
       - name: Print commit metadata and changed files
         env:
