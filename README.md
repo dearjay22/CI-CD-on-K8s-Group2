@@ -238,4 +238,6 @@ Confirm **Site Admin → Actions → Runners** shows **Online** with labels.
 
 ![alt text](image.png)
 
+![alt text](image-1.png)
+
 ---
