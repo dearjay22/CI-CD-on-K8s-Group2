@@ -236,6 +236,6 @@ Confirm **Site Admin → Actions → Runners** shows **Online** with labels.
 
 ## 📸 Screenshots (evidence)
 
-
+![alt text](image.png)
 
 ---
